@@ -14,10 +14,11 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 
 public class MainActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2  {
     private static final String TAG = "PuzzleSolver";
-    Mat mRgb;
+    Mat mRgb,mCanny,mGray;
     JavaCameraView mOpenCvCameraView;
 
     @Override
@@ -81,6 +82,8 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
     @Override
     public void onCameraViewStarted(int width, int height) {
         mRgb = new Mat(width,height,CvType.CV_8UC4);
+        mGray = new Mat(width,height,CvType.CV_8UC1);
+        mCanny = new Mat(width,height,CvType.CV_8UC1);
     }
 
     @Override
@@ -89,7 +92,12 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
     }
 
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        //Imgproc.cvtColor(inputFrame,mRgb,Imgproc.Canny(););
+       // mRgb = inputFrame.;
+        Imgproc.cvtColor(inputFrame.rgba(),mGray,Imgproc.COLOR_RGB2GRAY);
+        Imgproc.Canny(mGray,mCanny,300,300);
+       // return inputFrame.rgba();
+        return mCanny;
 
-        return inputFrame.rgba();
     }
 }
