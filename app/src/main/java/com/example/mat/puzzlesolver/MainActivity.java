@@ -96,8 +96,8 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
        // mRgb = inputFrame.;
         Imgproc.cvtColor(inputFrame.rgba(),mGray,Imgproc.COLOR_RGB2GRAY);
         Imgproc.Canny(mGray,mCanny,300,300);
-       // return inputFrame.rgba();
-        return mCanny;
+        return inputFrame.rgba();
+       // return mCanny;
 
     }
 }
