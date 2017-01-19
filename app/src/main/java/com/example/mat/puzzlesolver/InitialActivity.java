@@ -87,6 +87,7 @@ public class InitialActivity extends Activity {
                 Intent i = new Intent(context, ExtractingPiecesActivity.class);
                 i.putExtra("isDemo", true);
                 startActivity(i);
+
             }
         });
     }
