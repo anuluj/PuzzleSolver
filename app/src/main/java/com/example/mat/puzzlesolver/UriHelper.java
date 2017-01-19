@@ -1,6 +1,7 @@
 package com.example.mat.puzzlesolver;
 
 import android.app.Application;
+import android.graphics.Bitmap;
 
 /**
  * Created by mat on 17.01.2017.
@@ -24,7 +25,23 @@ public class UriHelper extends Application {
     public void setPuzzlesPhotoUri(String puzzlesPhotoUri) {
         this.puzzlesPhotoUri = puzzlesPhotoUri;
     }
+    public Bitmap getDemoFullPhoto() {
+        return demoFullPhoto;
+    }
 
+    public void setDemoFullPhoto(Bitmap demoFullPhoto) {
+        this.demoFullPhoto = demoFullPhoto;
+    }
+
+    public Bitmap getDemoPuzzlesPhoto() {
+        return demoPuzzlesPhoto;
+    }
+
+    public void setDemoPuzzlesPhoto(Bitmap demoPuzzlesPhoto) {
+        this.demoPuzzlesPhoto = demoPuzzlesPhoto;
+    }
     private String fullPhotoUri;
     private String puzzlesPhotoUri;
+    private Bitmap demoFullPhoto;
+    private Bitmap demoPuzzlesPhoto;
 }

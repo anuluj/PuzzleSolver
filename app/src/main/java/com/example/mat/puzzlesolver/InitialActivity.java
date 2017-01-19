@@ -33,6 +33,7 @@ public class InitialActivity extends Activity {
     int toContinue = 0;
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int REQUEST_TAKE_PHOTO = 1;
+    UriHelper mApp;
     int photoType;
     Context context;
     Uri photoURI;
@@ -51,6 +52,7 @@ public class InitialActivity extends Activity {
         mImageView = (ImageView) findViewById(R.id.imageView);
         mImageView2 = (ImageView) findViewById(R.id.imageView2);
 
+        mApp = ((UriHelper) getApplicationContext());
         context = getApplicationContext();
 
         btPhotoOfImage.setOnClickListener(new View.OnClickListener() {
@@ -73,6 +75,10 @@ public class InitialActivity extends Activity {
             public void onClick(View v) {
                 //TODO: activity do przetwarzania obrazu
                 Toast.makeText(context,"activity do przetwarzania obrazu", Toast.LENGTH_SHORT).show();
+                Intent i = new Intent(context, ExtractingPiecesActivity.class);
+                i.putExtra("isDemo", false);
+                startActivity(i);
+
             }
         });
         btDemo.setOnClickListener(new View.OnClickListener() {
@@ -97,27 +103,17 @@ public class InitialActivity extends Activity {
             Bitmap bitmap = null;
             try {
                 bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(),photoURI);
+                if((bitmap.getWidth() > 3000 )|| (bitmap.getHeight() >3000) ){
+                    bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth()/ 2, bitmap.getHeight()/2, false);
+                    Log.d("BITMAP", "TOO BIG:" + photoURI.toString());
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-//            toContinue++;
-//            isContinue();
-            //***********OPEN CV PROCC**************
-//            Mat mat_bitmap,mat_canny;
-//            mat_bitmap = new Mat();
-//            Utils.bitmapToMat(bitmap, mat_bitmap);
-//          //  Imgproc.cvtColor(mMat,mMat_Grey, Imgproc.CV_CONTOURS_MATCH_I1);
-//            Utils.matToBitmap(mat_bitmap,bitmap);
-//
-//
-//
-
-            //***********OPEN CV PROCC**************
-
             if(photoType == UriHelper.FULL_PHOTO)
-                mImageView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, bitmap.getWidth()/2 , bitmap.getHeight()/2, false));
+                mImageView.setImageBitmap(bitmap);
             else
-                mImageView2.setImageBitmap(Bitmap.createScaledBitmap(bitmap, bitmap.getWidth()/2 , bitmap.getHeight()/2, false));
+                mImageView2.setImageBitmap(bitmap);
         }
     }
     private void dispatchTakePictureIntent(int photoType) {
@@ -135,7 +131,6 @@ public class InitialActivity extends Activity {
                         photoFile);
                 Log.d("file Name: ", photoURI.toString());
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                UriHelper mApp = ((UriHelper) getApplicationContext());
                 if(photoType == UriHelper.FULL_PHOTO) {
                     mApp.setFullPhotoUri(photoURI.toString());
                 }

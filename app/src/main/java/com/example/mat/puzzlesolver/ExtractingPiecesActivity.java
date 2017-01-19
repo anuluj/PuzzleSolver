@@ -4,11 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.net.Uri;
-import android.provider.MediaStore;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -23,7 +21,6 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.*;
 import org.opencv.android.Utils;
@@ -32,24 +29,28 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.opencv.imgproc.Imgproc.approxPolyDP;
 import static org.opencv.imgproc.Imgproc.boundingRect;
 import static org.opencv.imgproc.Imgproc.contourArea;
 
 public class ExtractingPiecesActivity extends Activity {
 
     ImageView iv0,iv1,iv2,iv3, iv4,iv5;
-    Bitmap demoPuzzle, demoPhoto, previousPhoto, step0, step1, step2, step3,step4;
+    Bitmap puzzlePhoto, fullPhoto, previousPhoto, step0, step1, step2, step3,step4;
     int stepCounter =0;
     Context context;
-    Mat mMat,mMat_Grey;
     Button btNext,btPrvious;
     boolean isDemo;
     private static final String TAG = "ExtractingPiecesAct";
+    UriHelper mApp;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_extracting_pieces);
+
+        UriHelper mApp = ((UriHelper) getApplicationContext());
+
+
+
         iv0 = (ImageView) findViewById(R.id.ExtractingPiecesImageView);
         iv1 = (ImageView) findViewById(R.id.ExtractingPiecesImageView1);
         iv2 = (ImageView) findViewById(R.id.ExtractingPiecesImageView2);
@@ -61,13 +62,29 @@ public class ExtractingPiecesActivity extends Activity {
         btPrvious = (Button) findViewById(R.id.btExtractingPiecesPrevoius);
 
         context = getApplicationContext();
+
+
         isDemo = getIntent().getExtras().getBoolean("isDemo");
         if(isDemo){
-            demoPuzzle = BitmapFactory.decodeResource(getResources(), R.drawable.puzzles);
-            demoPhoto = BitmapFactory.decodeResource(getResources(), R.drawable.photo);
-            iv0.setImageBitmap(demoPuzzle);
-        }
+            mApp.setDemoPuzzlesPhoto(BitmapFactory.decodeResource(getResources(), R.drawable.puzzles));
+            mApp.setDemoFullPhoto(BitmapFactory.decodeResource(getResources(), R.drawable.photo));
 
+            puzzlePhoto = mApp.getDemoPuzzlesPhoto();
+            fullPhoto = mApp.getDemoFullPhoto();
+            iv0.setImageBitmap(puzzlePhoto);
+        }
+        else {
+            try {
+                puzzlePhoto = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Uri.parse(mApp.getPuzzlesPhotoUri()));
+                if(puzzlePhoto.getWidth() > 3000 || puzzlePhoto.getHeight() >3000){
+                    puzzlePhoto =  Bitmap.createScaledBitmap(puzzlePhoto, puzzlePhoto.getWidth()/ 2, puzzlePhoto.getHeight()/2, false);
+                }
+              //  fullPhoto = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Uri.parse(mApp.getFullPhotoUri()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            iv0.setImageBitmap(puzzlePhoto);
+        }
         btNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -101,29 +118,31 @@ public class ExtractingPiecesActivity extends Activity {
     }
     public void my_threshold(){
         //***INIT
-        demoPuzzle = BitmapFactory.decodeResource(getResources(), R.drawable.puzzles);
-        step0 = BitmapFactory.decodeResource(getResources(), R.drawable.puzzles);
-        step1 = BitmapFactory.decodeResource(getResources(), R.drawable.puzzles);
-        step2 = BitmapFactory.decodeResource(getResources(), R.drawable.puzzles);
-        step3 = BitmapFactory.decodeResource(getResources(), R.drawable.puzzles);
-        step4 = BitmapFactory.decodeResource(getResources(), R.drawable.puzzles);
+        int width = puzzlePhoto.getWidth();
+        int height = puzzlePhoto.getHeight();
+        step0 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        step1 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        step2 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        step3 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        step4 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+
 
         Mat matDemoPuzzles, matDemoPuzzles_grey,matDemoPuzzles_mask,tempMat;
         matDemoPuzzles = new Mat();
         matDemoPuzzles_grey = new Mat();
         matDemoPuzzles_mask = new Mat();
         //****GREY SCALE****
-        Utils.bitmapToMat(demoPuzzle,matDemoPuzzles);
+        Utils.bitmapToMat(puzzlePhoto,matDemoPuzzles);
         tempMat = matDemoPuzzles.clone();
         Imgproc.cvtColor(matDemoPuzzles,matDemoPuzzles_grey,Imgproc.COLOR_BGR2GRAY);
         Utils.matToBitmap(matDemoPuzzles_grey,step0);
 
-        iv1.setImageBitmap(step0);
+        iv1.setImageBitmap(Bitmap.createScaledBitmap(step0,step0.getWidth()/5 , step0.getHeight()/5, false));
         //*****MASK****
-        Imgproc.threshold(matDemoPuzzles_grey, matDemoPuzzles_mask, 230,3,4);
+        Imgproc.threshold(matDemoPuzzles_grey, matDemoPuzzles_mask, 150,3,4);
         Utils.matToBitmap(matDemoPuzzles_mask,step1);
 
-        iv2.setImageBitmap(step1);
+      //  iv2.setImageBitmap(step1);
         //****CONTOURS ON MASK****
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
         Mat hierarchy   = new Mat(matDemoPuzzles_mask.rows(), matDemoPuzzles_mask.cols(), CvType.CV_8UC1, new Scalar(0));
@@ -134,7 +153,7 @@ public class ExtractingPiecesActivity extends Activity {
         for( int i = 0; i< contours.size(); i++ ) // iterate through each contour.
         {
             double a = contourArea(contours.get(i), false);  //  Find the area of contour
-            if (a > 15)
+            if (a > 10000)
                 bigContours.add(contours.get(i));
         }
         Imgproc.drawContours(matDemoPuzzles_mask, bigContours, -1, new Scalar(250,0) ,-1);
@@ -148,7 +167,7 @@ public class ExtractingPiecesActivity extends Activity {
         Log.d(TAG, " rozmiar contures "+bigContours.size());
         Toast.makeText(context, "Znaleziono "+bigContours.size()+" elementów", Toast.LENGTH_SHORT).show();
         //***** CROP PUZZLES************
-        List<Mat> listOfPuzzles = new ArrayList<Mat>(6);
+        List<Mat> listOfPuzzles = new ArrayList<Mat>();
         for(int i=0;i<bigContours.size();i++){
             MatOfPoint2f mMOP2F =  new MatOfPoint2f(bigContours.get(i).toArray());
             bigContours.get(i).convertTo(mMOP2F, CvType.CV_32FC2);
@@ -156,8 +175,8 @@ public class ExtractingPiecesActivity extends Activity {
             Imgproc.approxPolyDP(mMOP2F, approxCurve, 3, true);
             listOfPuzzles.add(tempMat.submat(boundingRect(bigContours.get(i))));
         }
-        step4 = Bitmap.createScaledBitmap(step4, listOfPuzzles.get(2).cols(), listOfPuzzles.get(2).rows(), false);
-        Utils.matToBitmap(listOfPuzzles.get(2), step4);
+        step4 = Bitmap.createScaledBitmap(step4, listOfPuzzles.get(0).cols(), listOfPuzzles.get(0).rows(), false);
+        Utils.matToBitmap(listOfPuzzles.get(0), step4);
         iv5.setImageBitmap(step4);
         //*******************************
 
