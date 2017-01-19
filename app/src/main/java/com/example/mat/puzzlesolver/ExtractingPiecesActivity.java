@@ -35,11 +35,13 @@ import static org.opencv.imgproc.Imgproc.contourArea;
 public class ExtractingPiecesActivity extends Activity {
 
     ImageView iv0,iv1,iv2,iv3, iv4,iv5;
-    Bitmap puzzlePhoto, fullPhoto, previousPhoto, step0, step1, step2, step3,step4;
+    Bitmap puzzlePhoto, fullPhoto, step0, step1, step2, step3,step4;
     int stepCounter =0;
+    List<Mat> listOfPuzzles = new ArrayList<Mat>();
     Context context;
     Button btNext,btPrvious;
     boolean isDemo;
+    int tresholdValue = 127;
     private static final String TAG = "ExtractingPiecesAct";
     UriHelper mApp;
     @Override
@@ -48,8 +50,6 @@ public class ExtractingPiecesActivity extends Activity {
         setContentView(R.layout.activity_extracting_pieces);
 
         UriHelper mApp = ((UriHelper) getApplicationContext());
-
-
 
         iv0 = (ImageView) findViewById(R.id.ExtractingPiecesImageView);
         iv1 = (ImageView) findViewById(R.id.ExtractingPiecesImageView1);
@@ -62,7 +62,6 @@ public class ExtractingPiecesActivity extends Activity {
         btPrvious = (Button) findViewById(R.id.btExtractingPiecesPrevoius);
 
         context = getApplicationContext();
-
 
         isDemo = getIntent().getExtras().getBoolean("isDemo");
         if(isDemo){
@@ -79,7 +78,6 @@ public class ExtractingPiecesActivity extends Activity {
                 if(puzzlePhoto.getWidth() > 3000 || puzzlePhoto.getHeight() >3000){
                     puzzlePhoto =  Bitmap.createScaledBitmap(puzzlePhoto, puzzlePhoto.getWidth()/ 2, puzzlePhoto.getHeight()/2, false);
                 }
-              //  fullPhoto = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Uri.parse(mApp.getFullPhotoUri()));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -92,10 +90,12 @@ public class ExtractingPiecesActivity extends Activity {
                 switch (stepCounter++){
                     case 0:
                     {
-                        my_threshold();
+                        extractPieces();
+                        break;
                     }
                     case 1:{
                         Log.d("przycisk next", "case 1");
+                       // extractFullPhoto();
                     }
                     case 2:{
                         Log.d("przycisk next", "case 2");
@@ -105,7 +105,6 @@ public class ExtractingPiecesActivity extends Activity {
                         btNext.setEnabled(false);
                     }
                 }
-
             }
         });
         btPrvious.setOnClickListener(new View.OnClickListener() {
@@ -116,7 +115,7 @@ public class ExtractingPiecesActivity extends Activity {
             }
         });
     }
-    public void my_threshold(){
+    public void extractPieces(){
         //***INIT
         int width = puzzlePhoto.getWidth();
         int height = puzzlePhoto.getHeight();
@@ -124,7 +123,7 @@ public class ExtractingPiecesActivity extends Activity {
         step1 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         step2 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         step3 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        step4 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        step4 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444);
 
 
         Mat matDemoPuzzles, matDemoPuzzles_grey,matDemoPuzzles_mask,tempMat;
@@ -137,12 +136,14 @@ public class ExtractingPiecesActivity extends Activity {
         Imgproc.cvtColor(matDemoPuzzles,matDemoPuzzles_grey,Imgproc.COLOR_BGR2GRAY);
         Utils.matToBitmap(matDemoPuzzles_grey,step0);
 
-        iv1.setImageBitmap(Bitmap.createScaledBitmap(step0,step0.getWidth()/5 , step0.getHeight()/5, false));
+        iv1.setImageBitmap(step0);
+
         //*****MASK****
-        Imgproc.threshold(matDemoPuzzles_grey, matDemoPuzzles_mask, 150,3,4);
+        Imgproc.threshold(matDemoPuzzles_grey, matDemoPuzzles_mask, tresholdValue,3,4);
         Utils.matToBitmap(matDemoPuzzles_mask,step1);
 
-      //  iv2.setImageBitmap(step1);
+        iv2.setImageBitmap(step1);
+
         //****CONTOURS ON MASK****
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
         Mat hierarchy   = new Mat(matDemoPuzzles_mask.rows(), matDemoPuzzles_mask.cols(), CvType.CV_8UC1, new Scalar(0));
@@ -156,18 +157,20 @@ public class ExtractingPiecesActivity extends Activity {
             if (a > 10000)
                 bigContours.add(contours.get(i));
         }
-        Imgproc.drawContours(matDemoPuzzles_mask, bigContours, -1, new Scalar(250,0) ,-1);
+        Imgproc.drawContours(matDemoPuzzles_mask, bigContours, -1, new Scalar(255,255,255) ,3);
         Utils.matToBitmap(matDemoPuzzles_mask, step2);
 
         iv3.setImageBitmap(step2);
+
         //****CONTOURS ON IMAGE****
-        Imgproc.drawContours(matDemoPuzzles, bigContours, -1, new Scalar(250,0) ,5);
-        Utils.matToBitmap(matDemoPuzzles, step3,false);
+        Imgproc.drawContours(matDemoPuzzles, bigContours, -1, new Scalar(0,255,0),5);
+        Imgproc.cvtColor(matDemoPuzzles,matDemoPuzzles, Imgproc.COLOR_RGB2BGR);
+        Utils.matToBitmap(matDemoPuzzles, step3, true);
         iv4.setImageBitmap(step3);
         Log.d(TAG, " rozmiar contures "+bigContours.size());
         Toast.makeText(context, "Znaleziono "+bigContours.size()+" elementów", Toast.LENGTH_SHORT).show();
+
         //***** CROP PUZZLES************
-        List<Mat> listOfPuzzles = new ArrayList<Mat>();
         for(int i=0;i<bigContours.size();i++){
             MatOfPoint2f mMOP2F =  new MatOfPoint2f(bigContours.get(i).toArray());
             bigContours.get(i).convertTo(mMOP2F, CvType.CV_32FC2);
