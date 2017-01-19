@@ -38,7 +38,7 @@
         android:text="Kontynuuj" />
 
     <Button
-        android:id="@+id/Demo"
+        android:id="@+id/btDemo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
@@ -52,7 +52,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/Demo"
+        android:layout_below="@+id/btDemo"
         android:text="Credits" />
 
     <ScrollView

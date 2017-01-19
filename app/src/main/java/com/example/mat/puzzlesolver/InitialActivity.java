@@ -1,5 +1,9 @@
 package com.example.mat.puzzlesolver;
 
+import org.opencv.core.Mat;
+import org.opencv.imgproc.*;
+import org.opencv.android.Utils;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -41,7 +45,8 @@ public class InitialActivity extends Activity {
         btPhotoOfImage = (Button) findViewById(R.id.btPhotoOfImage);
         btPhotoOfPuzzles = (Button) findViewById(R.id.btPhotoOfPuzzles);
         btContinue = (Button) findViewById(R.id.btContinue);
-        btContinue.setEnabled(false);
+        btDemo = (Button) findViewById(R.id.btDemo);
+        //btContinue.setEnabled(false);
 
         mImageView = (ImageView) findViewById(R.id.imageView);
         mImageView2 = (ImageView) findViewById(R.id.imageView2);
@@ -70,6 +75,14 @@ public class InitialActivity extends Activity {
                 Toast.makeText(context,"activity do przetwarzania obrazu", Toast.LENGTH_SHORT).show();
             }
         });
+        btDemo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(context, ExtractingPiecesActivity.class);
+                i.putExtra("isDemo", true);
+                startActivity(i);
+            }
+        });
     }
     public void isContinue(){
         if(toContinue==2){
@@ -87,8 +100,20 @@ public class InitialActivity extends Activity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            toContinue++;
-            isContinue();
+//            toContinue++;
+//            isContinue();
+            //***********OPEN CV PROCC**************
+//            Mat mat_bitmap,mat_canny;
+//            mat_bitmap = new Mat();
+//            Utils.bitmapToMat(bitmap, mat_bitmap);
+//          //  Imgproc.cvtColor(mMat,mMat_Grey, Imgproc.CV_CONTOURS_MATCH_I1);
+//            Utils.matToBitmap(mat_bitmap,bitmap);
+//
+//
+//
+
+            //***********OPEN CV PROCC**************
+
             if(photoType == UriHelper.FULL_PHOTO)
                 mImageView.setImageBitmap(Bitmap.createScaledBitmap(bitmap, bitmap.getWidth()/2 , bitmap.getHeight()/2, false));
             else
