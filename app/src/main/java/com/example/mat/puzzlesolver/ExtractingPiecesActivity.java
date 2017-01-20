@@ -153,7 +153,7 @@ public class ExtractingPiecesActivity extends Activity {
         Point point = new Point(0,0);
 
 //        Imgproc.findContours(matDemoPuzzles_mask, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE, point);
-        Imgproc.findContours(matDemoPuzzles_mask, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE, point);
+        Imgproc.findContours(matDemoPuzzles_mask, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE, point);
         List<MatOfPoint> bigContours = new ArrayList<MatOfPoint>();
         for( int i = 0; i< contours.size(); i++ ) // iterate through each contour.
         {
@@ -182,8 +182,10 @@ public class ExtractingPiecesActivity extends Activity {
             Imgproc.approxPolyDP(mMOP2F, approxCurve, 3, true);
             listOfPuzzles.add(tempMat.submat(boundingRect(bigContours.get(i))));
         }
-//        step4 = Bitmap.createScaledBitmap(step4, listOfPuzzles.get(0).cols(), listOfPuzzles.get(0).rows(), false);
-        //Utils.matToBitmap(listOfPuzzles.get(0), step4);
+        if(listOfPuzzles.size()>0) {
+            step4 = Bitmap.createScaledBitmap(step4, listOfPuzzles.get(0).cols(), listOfPuzzles.get(0).rows(), false);
+            Utils.matToBitmap(listOfPuzzles.get(0), step4);
+        }
         iv5.setImageBitmap(step4);
         //*******************************
 
