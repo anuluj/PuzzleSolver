@@ -7,6 +7,7 @@ import org.opencv.android.Utils;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -29,16 +30,18 @@ import java.util.Date;
 
 public class InitialActivity extends Activity {
 
-    Button btPhotoOfImage, btPhotoOfPuzzles, btDemo, btContinue;
+    Button btPhotoOfImage, btPhotoOfPuzzles, btDemo, btContinue, btCredits, btLoeadImagePuzzlesGallery;
     int toContinue = 0;
+    private static final int SELECT_PICTURE = 100;
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int REQUEST_TAKE_PHOTO = 1;
     UriHelper mApp;
     int photoType;
     Context context;
     Uri photoURI;
-    ImageView mImageView,mImageView2;
+    ImageView mImageView, mImageView2;
     String mCurrentPhotoPath;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +50,8 @@ public class InitialActivity extends Activity {
         btPhotoOfPuzzles = (Button) findViewById(R.id.btPhotoOfPuzzles);
         btContinue = (Button) findViewById(R.id.btContinue);
         btDemo = (Button) findViewById(R.id.btDemo);
+        btCredits = (Button) findViewById(R.id.btCredits);
+        btLoeadImagePuzzlesGallery = (Button)findViewById(R.id.btLoadPuzzlesFromGallery) ;
         //btContinue.setEnabled(false);
 
         mImageView = (ImageView) findViewById(R.id.imageView);
@@ -59,14 +64,14 @@ public class InitialActivity extends Activity {
             @Override
             public void onClick(View v) {
                 dispatchTakePictureIntent(UriHelper.FULL_PHOTO);
-                photoType=UriHelper.FULL_PHOTO;
+                photoType = UriHelper.FULL_PHOTO;
             }
         });
         btPhotoOfPuzzles.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dispatchTakePictureIntent(UriHelper.PUZZLE_PHOTO);
-                photoType=UriHelper.PUZZLE_PHOTO;
+                photoType = UriHelper.PUZZLE_PHOTO;
 
             }
         });
@@ -74,7 +79,7 @@ public class InitialActivity extends Activity {
             @Override
             public void onClick(View v) {
                 //TODO: activity do przetwarzania obrazu
-                Toast.makeText(context,"activity do przetwarzania obrazu", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "activity do przetwarzania obrazu", Toast.LENGTH_SHORT).show();
                 Intent i = new Intent(context, ExtractingPiecesActivity.class);
                 i.putExtra("isDemo", false);
                 startActivity(i);
@@ -90,33 +95,85 @@ public class InitialActivity extends Activity {
 
             }
         });
+        btLoeadImagePuzzlesGallery.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openImageChooser();
+            }
+        });
     }
-    public void isContinue(){
-        if(toContinue==2){
+
+    /* Get the real path from the URI */
+    public String getPathFromURI(Uri contentUri) {
+        String res = null;
+        String[] proj = {MediaStore.Images.Media.DATA};
+        Cursor cursor = getContentResolver().query(contentUri, proj, null, null, null);
+        if (cursor.moveToFirst()) {
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            res = cursor.getString(column_index);
+        }
+        cursor.close();
+        return res;
+    }
+
+    void openImageChooser() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PICTURE);
+    }
+
+    public void isContinue() {
+        if (toContinue == 2) {
             btContinue.setEnabled(true);
             btContinue.setTextColor(Color.GREEN);
-            Toast.makeText(context,"Mozesz przejsc do kolejnego etapu", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Mozesz przejsc do kolejnego etapu", Toast.LENGTH_SHORT).show();
         }
     }
+
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Toast.makeText(context, ""+photoURI.toString(),Toast.LENGTH_LONG).show();
-            Bitmap bitmap = null;
-            try {
-                bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(),photoURI);
-                if((bitmap.getWidth() > 3000 )|| (bitmap.getHeight() >3000) ){
-                    bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth()/ 2, bitmap.getHeight()/2, false);
-                    Log.d("BITMAP", "TOO BIG:" + photoURI.toString());
+        Bitmap bitmap = null;
+        if (resultCode == RESULT_OK) {
+            if (requestCode == SELECT_PICTURE) {
+                Uri selectedImageUri = data.getData();
+                if (null != selectedImageUri) {
+                    photoURI = selectedImageUri;
+                    Log.i("Initial activity", "Image Path : " + photoURI);
                 }
+            }
+            Toast.makeText(context, "" + photoURI.toString(), Toast.LENGTH_LONG).show();
+            try {
+                bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), photoURI);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            if(photoType == UriHelper.FULL_PHOTO)
+            if ((bitmap.getWidth() > 3000) || (bitmap.getHeight() > 3000)) {
+                bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth() / 2, bitmap.getHeight() / 2, false);
+                Log.d("BITMAP", "TOO BIG:" + photoURI.toString());
+            }
+            if (photoType == UriHelper.FULL_PHOTO) {
                 mImageView.setImageBitmap(bitmap);
-            else
+                mApp.setFullPhotoUri(photoURI.toString());
+            } else {
                 mImageView2.setImageBitmap(bitmap);
+                mApp.setPuzzlesPhotoUri(photoURI.toString());
+            }
+
+
         }
     }
+//        if (requestCode == SELECT_PICTURE) {
+//            // Get the url from data
+//            Uri selectedImageUri = data.getData();
+//            if (null != selectedImageUri) {
+//                // Get the path from the Uri
+//                String path = getPathFromURI(selectedImageUri);
+//                Log.i("Initial activity", "Image Path : " + path);
+//                // Set the image in ImageView
+//                mImageView.setImageURI(selectedImageUri);
+//            }
+//        }
+
     private void dispatchTakePictureIntent(int photoType) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
@@ -132,12 +189,6 @@ public class InitialActivity extends Activity {
                         photoFile);
                 Log.d("file Name: ", photoURI.toString());
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                if(photoType == UriHelper.FULL_PHOTO) {
-                    mApp.setFullPhotoUri(photoURI.toString());
-                }
-                else {
-                    mApp.setPuzzlesPhotoUri(photoURI.toString());
-                }
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
         }
@@ -157,6 +208,7 @@ public class InitialActivity extends Activity {
         Log.d("file Name: ", imageFileName);
         return image;
     }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);

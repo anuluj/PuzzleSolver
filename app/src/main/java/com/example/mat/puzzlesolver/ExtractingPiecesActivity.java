@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.opencv.core.Core.bitwise_not;
 import static org.opencv.imgproc.Imgproc.boundingRect;
 import static org.opencv.imgproc.Imgproc.contourArea;
 
@@ -133,13 +134,15 @@ public class ExtractingPiecesActivity extends Activity {
         //****GREY SCALE****
         Utils.bitmapToMat(puzzlePhoto,matDemoPuzzles);
         tempMat = matDemoPuzzles.clone();
-        Imgproc.cvtColor(matDemoPuzzles,matDemoPuzzles_grey,Imgproc.COLOR_BGR2GRAY);
+        Imgproc.cvtColor(matDemoPuzzles,matDemoPuzzles_grey,Imgproc.COLOR_RGB2GRAY);
         Utils.matToBitmap(matDemoPuzzles_grey,step0);
 
         iv1.setImageBitmap(step0);
 
         //*****MASK****
-        Imgproc.threshold(matDemoPuzzles_grey, matDemoPuzzles_mask, tresholdValue,3,4);
+       // Imgproc.threshold(matDemoPuzzles_grey, matDemoPuzzles_mask, tresholdValue,3,4);
+        Imgproc.adaptiveThreshold(matDemoPuzzles_grey, matDemoPuzzles_mask, 250, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 39 ,4);
+       // bitwise_not(matDemoPuzzles_mask,matDemoPuzzles_mask);
         Utils.matToBitmap(matDemoPuzzles_mask,step1);
 
         iv2.setImageBitmap(step1);
@@ -149,12 +152,13 @@ public class ExtractingPiecesActivity extends Activity {
         Mat hierarchy   = new Mat(matDemoPuzzles_mask.rows(), matDemoPuzzles_mask.cols(), CvType.CV_8UC1, new Scalar(0));
         Point point = new Point(0,0);
 
-        Imgproc.findContours(matDemoPuzzles_mask, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE, point);
+//        Imgproc.findContours(matDemoPuzzles_mask, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE, point);
+        Imgproc.findContours(matDemoPuzzles_mask, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE, point);
         List<MatOfPoint> bigContours = new ArrayList<MatOfPoint>();
         for( int i = 0; i< contours.size(); i++ ) // iterate through each contour.
         {
             double a = contourArea(contours.get(i), false);  //  Find the area of contour
-            if (a > 10000)
+            if (a > 10000 && a < ((matDemoPuzzles_mask.cols() * matDemoPuzzles_mask.rows())/2))
                 bigContours.add(contours.get(i));
         }
         Imgproc.drawContours(matDemoPuzzles_mask, bigContours, -1, new Scalar(255,255,255) ,3);
@@ -178,8 +182,8 @@ public class ExtractingPiecesActivity extends Activity {
             Imgproc.approxPolyDP(mMOP2F, approxCurve, 3, true);
             listOfPuzzles.add(tempMat.submat(boundingRect(bigContours.get(i))));
         }
-        step4 = Bitmap.createScaledBitmap(step4, listOfPuzzles.get(0).cols(), listOfPuzzles.get(0).rows(), false);
-        Utils.matToBitmap(listOfPuzzles.get(0), step4);
+//        step4 = Bitmap.createScaledBitmap(step4, listOfPuzzles.get(0).cols(), listOfPuzzles.get(0).rows(), false);
+        //Utils.matToBitmap(listOfPuzzles.get(0), step4);
         iv5.setImageBitmap(step4);
         //*******************************
 
