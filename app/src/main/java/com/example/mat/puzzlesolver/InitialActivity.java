@@ -1,15 +1,8 @@
 package com.example.mat.puzzlesolver;
 
-import org.opencv.core.Mat;
-import org.opencv.imgproc.*;
-import org.opencv.android.Utils;
-
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Environment;
@@ -21,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.io.File;
@@ -28,12 +22,11 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class InitialActivity extends Activity {
+public class InitialActivity extends AppCompatActivity {
 
-    Button btPhotoOfImage, btPhotoOfPuzzles, btDemo, btContinue, btCredits, btLoeadImagePuzzlesGallery;
-    int toContinue = 0;
+    Button btPhotoOfImage, btPhotoOfPuzzles, btDemo, btContinue, btCredits, btLoeadImagePuzzlesGallery, btLoadFullImagesGallery;
+    LinearLayout linearLayoutFullPhoto, linearLayoutPuzzlePhoto;
     private static final int SELECT_PICTURE = 100;
-    static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int REQUEST_TAKE_PHOTO = 1;
     UriHelper mApp;
     int photoType;
@@ -41,6 +34,7 @@ public class InitialActivity extends Activity {
     Uri photoURI;
     ImageView mImageView, mImageView2;
     String mCurrentPhotoPath;
+    Boolean isFullPhotoLoaded=false,isPuzzlePhotoLoaded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +46,11 @@ public class InitialActivity extends Activity {
         btDemo = (Button) findViewById(R.id.btDemo);
         btCredits = (Button) findViewById(R.id.btCredits);
         btLoeadImagePuzzlesGallery = (Button)findViewById(R.id.btLoadPuzzlesFromGallery) ;
-        //btContinue.setEnabled(false);
+        btLoadFullImagesGallery = (Button) findViewById(R.id.btLoadPhotoFromGallery);
+        btContinue.setEnabled(false);
+        linearLayoutFullPhoto = (LinearLayout) findViewById(R.id.layoutLinearLoadImage);
+        linearLayoutPuzzlePhoto = (LinearLayout)findViewById(R.id.layoutLinearLoadPuzzles);
+
 
         mImageView = (ImageView) findViewById(R.id.imageView);
         mImageView2 = (ImageView) findViewById(R.id.imageView2);
@@ -72,14 +70,11 @@ public class InitialActivity extends Activity {
             public void onClick(View v) {
                 dispatchTakePictureIntent(UriHelper.PUZZLE_PHOTO);
                 photoType = UriHelper.PUZZLE_PHOTO;
-
             }
         });
         btContinue.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO: activity do przetwarzania obrazu
-                Toast.makeText(context, "activity do przetwarzania obrazu", Toast.LENGTH_SHORT).show();
                 Intent i = new Intent(context, ExtractingPiecesActivity.class);
                 i.putExtra("isDemo", false);
                 startActivity(i);
@@ -98,22 +93,17 @@ public class InitialActivity extends Activity {
         btLoeadImagePuzzlesGallery.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                photoType = UriHelper.PUZZLE_PHOTO;
                 openImageChooser();
             }
         });
-    }
-
-    /* Get the real path from the URI */
-    public String getPathFromURI(Uri contentUri) {
-        String res = null;
-        String[] proj = {MediaStore.Images.Media.DATA};
-        Cursor cursor = getContentResolver().query(contentUri, proj, null, null, null);
-        if (cursor.moveToFirst()) {
-            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            res = cursor.getString(column_index);
-        }
-        cursor.close();
-        return res;
+        btLoadFullImagesGallery.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                photoType = UriHelper.FULL_PHOTO;
+                openImageChooser();
+            }
+        });
     }
 
     void openImageChooser() {
@@ -124,9 +114,9 @@ public class InitialActivity extends Activity {
     }
 
     public void isContinue() {
-        if (toContinue == 2) {
+        if (isFullPhotoLoaded&& isPuzzlePhotoLoaded) {
             btContinue.setEnabled(true);
-            btContinue.setTextColor(Color.GREEN);
+            btContinue.setBackgroundResource(R.drawable.contrinue_button_bg);
             Toast.makeText(context, "Mozesz przejsc do kolejnego etapu", Toast.LENGTH_SHORT).show();
         }
     }
@@ -152,28 +142,20 @@ public class InitialActivity extends Activity {
                 Log.d("BITMAP", "TOO BIG:" + photoURI.toString());
             }
             if (photoType == UriHelper.FULL_PHOTO) {
+                isFullPhotoLoaded=true;
+                isContinue();
+                linearLayoutFullPhoto.setBackgroundColor(Color.GREEN);
                 mImageView.setImageBitmap(bitmap);
                 mApp.setFullPhotoUri(photoURI.toString());
             } else {
+                isPuzzlePhotoLoaded = true;
+                isContinue();
+                linearLayoutPuzzlePhoto.setBackgroundColor(Color.GREEN);
                 mImageView2.setImageBitmap(bitmap);
                 mApp.setPuzzlesPhotoUri(photoURI.toString());
             }
-
-
         }
     }
-//        if (requestCode == SELECT_PICTURE) {
-//            // Get the url from data
-//            Uri selectedImageUri = data.getData();
-//            if (null != selectedImageUri) {
-//                // Get the path from the Uri
-//                String path = getPathFromURI(selectedImageUri);
-//                Log.i("Initial activity", "Image Path : " + path);
-//                // Set the image in ImageView
-//                mImageView.setImageURI(selectedImageUri);
-//            }
-//        }
-
     private void dispatchTakePictureIntent(int photoType) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {

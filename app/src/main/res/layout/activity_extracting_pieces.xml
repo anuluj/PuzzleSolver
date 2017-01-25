@@ -32,7 +32,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/btExtractingPiecesNext"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:id="@+id/scrollView2">
 
         <TableLayout
             android:layout_width="match_parent"
@@ -52,45 +53,44 @@
                 android:id="@+id/ExtractingPiecesImageView1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/ExtractingPiecesImageView"
-                android:layout_centerHorizontal="true"
-                android:adjustViewBounds="true"
-                app:srcCompat="@mipmap/ic_launcher" />
+                android:layout_marginTop="3dp"
+                android:adjustViewBounds="true" />
 
             <ImageView
                 android:id="@+id/ExtractingPiecesImageView2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/ExtractingPiecesImageView1"
-                android:layout_centerHorizontal="true"
-                android:adjustViewBounds="true"
-                app:srcCompat="@mipmap/ic_launcher" />
+                android:layout_marginTop="3dp"
+                android:adjustViewBounds="true" />
 
             <ImageView
                 android:id="@+id/ExtractingPiecesImageView3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/ExtractingPiecesImageView2"
-                android:layout_centerHorizontal="true"
-                android:adjustViewBounds="true"
-                app:srcCompat="@mipmap/ic_launcher" />
+                android:layout_marginTop="3dp"
+                android:adjustViewBounds="true" />
 
             <ImageView
                 android:id="@+id/ExtractingPiecesImageView4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/ExtractingPiecesImageView3"
-                android:layout_centerHorizontal="true"
-                android:adjustViewBounds="true"
-                app:srcCompat="@mipmap/ic_launcher" />
+                android:layout_marginTop="3dp"
+                android:adjustViewBounds="true" />
             <ImageView
                 android:id="@+id/ExtractingPiecesImageView5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/ExtractingPiecesImageView4"
-                android:layout_centerHorizontal="true"
-                android:adjustViewBounds="true"
-                app:srcCompat="@mipmap/ic_launcher" />
+                android:layout_marginTop="3dp"
+                android:adjustViewBounds="true" />
         </TableLayout>
     </ScrollView>
+
+    <ProgressBar
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/scrollView2"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/progressBar" />
+
 </RelativeLayout>
