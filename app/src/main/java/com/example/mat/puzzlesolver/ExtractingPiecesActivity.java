@@ -135,7 +135,6 @@ public class ExtractingPiecesActivity extends AppCompatActivity {
                         puzzleNumber++;
                         puzzleNumber %= listOfPuzzles.size();
                         new matchPuzzlesWithImageTask().execute();
-                        matcherVisualization = false;
                     }
                     default: {
                         stepCounter = 2;
@@ -147,8 +146,8 @@ public class ExtractingPiecesActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 puzzleNumber--;
-                puzzleNumber =Math.abs(puzzleNumber);
                 puzzleNumber %= listOfPuzzles.size();
+                puzzleNumber =Math.abs(puzzleNumber);
                 new matchPuzzlesWithImageTask().execute();
             }
         });
@@ -190,6 +189,7 @@ public class ExtractingPiecesActivity extends AppCompatActivity {
                 iv4.setImageBitmap(finalImg);
                 iv5.setImageBitmap(puzzleBitmap);
             }
+            matcherVisualization = false;
         }
     }
     private class croppImageTask extends AsyncTask<Void,Void,Void>{
